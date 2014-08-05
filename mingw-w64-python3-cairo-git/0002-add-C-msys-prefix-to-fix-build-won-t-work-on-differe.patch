@@ -1,0 +1,44 @@
+From c55a0956b2fb4a70d4e16ac1e94d5b9e312fed18 Mon Sep 17 00:00:00 2001
+From: Lubosz Sarnecki <lubosz@gmail.com>
+Date: Mon, 4 Aug 2014 12:55:04 +0200
+Subject: [PATCH 2/3] add C:/msys prefix to fix build (won't work on different
+ paths)
+
+---
+ setup.py | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index dabf41e..a170a0e 100755
+--- a/setup.py
++++ b/setup.py
+@@ -38,7 +38,17 @@ def pkg_config_parse(opt, pkg):
+ 
+   output = ret.decode()
+   opt = opt[-2:]
+-  return [x.lstrip(opt) for x in output.split()]
++  paths = [x.lstrip(opt) for x in output.split()]
++
++  c_paths = []
++
++  for path in paths:
++    if path.startswith("/mingw64"):
++      c_paths.append("C:/msys" + path)
++    else:
++      c_paths.append(path)
++
++  return c_paths
+ 
+ def createPcFile(PcFile):
+   print('creating %s' % PcFile)
+@@ -104,6 +114,7 @@ cairo = dic.Extension(
+   library_dirs = pkg_config_parse('--libs-only-L', 'cairo'),
+   libraries    = pkg_config_parse('--libs-only-l', 'cairo'),
+   runtime_library_dirs = runtime_library_dirs,
++  extra_compile_args=["-Wno-error=declaration-after-statement"]
+   )
+ 
+ dic.setup(
+-- 
+2.0.4
+

@@ -10,15 +10,15 @@ url="http://www.cairographics.org/pycairo"
 arch=('any')
 license=('LGPL' 'MPL')
 depends=("${MINGW_PACKAGE_PREFIX}-python3" "${MINGW_PACKAGE_PREFIX}-cairo")
-source=(http://cairographics.org/releases/${_name}-${pkgver}.tar.bz2
-    context.patch
-    pycairo-1.10.0-waf-python3.4.tar.bz2)
-md5sums=('e6fd3f2f1e6a72e0db0868c4985669c5'
-         'd4ded5af833f9072954c8bc434f90986'
-         '06a60ae51953a2d4e89eb46ac4d282f6')
 
-source=("git://git.cairographics.org/git/pycairo")
-md5sums=('SKIP')
+source=("git://git.cairographics.org/git/pycairo"
+  "0001-msys2-port-to-subprocess.check_output.patch"
+  "0002-add-C-msys-prefix-to-fix-build-won-t-work-on-differe.patch"
+  "0003-fix-PyVarObject_HEAD_INIT-problem.patch")
+md5sums=('SKIP'
+  "c204e6d6d712d257c7791eef018530bd"
+  "6e5ccbadcd22f9fe2a2b31493c805b27"
+  "ca7726ee837d49de8130db7efdc7d3c0")
 
 pkgver() {
   cd $_realname
@@ -29,14 +29,16 @@ pkgver() {
   echo $ver.$revision.$hash
 }
 
-build() {
+prepare() {
   cd $_realname
-  #${MINGW_PREFIX}/bin/python3 setup.py build --optimize=1
-  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-    ${MINGW_PREFIX}/bin/python3 setup.py build --prefix=${MINGW_PREFIX} --root="$pkgdir" -O1
+  git am ../0001-msys2-port-to-subprocess.check_output.patch
+  git am ../0002-add-C-msys-prefix-to-fix-build-won-t-work-on-differe.patch
+  git am ../0003-fix-PyVarObject_HEAD_INIT-problem.patch
 }
 
 package() {
   cd $_realname
-  ${MINGW_PREFIX}/bin/python3 setup.py install --root=$pkgdir/
+  ${MINGW_PREFIX}/bin/python3 setup.py install --prefix=${MINGW_PREFIX} --root=$pkgdir/
+  mv $pkgdir/msys/mingw64 $pkgdir/mingw64
+  rm $pkgdir/msys
 }
